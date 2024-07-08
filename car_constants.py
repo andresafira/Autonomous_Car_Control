@@ -1,0 +1,11 @@
+from simulation_constants import MIDDLE_LEFT, HEIGHT
+from math import pi
+
+# Car parameters
+CAR_WIDTH = 75
+CAR_HEIGHT = 150
+CAR_START = (MIDDLE_LEFT - CAR_WIDTH / 2, HEIGHT - CAR_HEIGHT)
+CAR_ACCELERATION = 5
+CAR_ANGLE_STEP = 5
+CAR_MAX_SPEED = 50
+MAX_STEERING_WHEEL_ANGLE = 10 / 180 * pi

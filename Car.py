@@ -2,11 +2,11 @@ from Utils.Geometry.Vector import Vector
 from Utils.Geometry.Position import Position
 from Utils.Geometry.Box import Segment, Box
 from Utils.General import sgn, interpolate_cycle
-from simulation_constants import CAR_ACCELERATION, CAR_MAX_SPEED, CAR_ANGLE_STEP, CAR_WIDTH, CAR_HEIGHT
-from simulation_constants import CAR_START_LEFT, CAR_START_RIGHT
-from simulation_constants import MAX_STEERING_WHEEL_ANGLE, INERTIA_PARAMETER_WHEEL, INERTIA_PARAMETER_SPEED
-from simulation_constants import SAMPLE_TIME, eps
-from math import cos, sin, pi, fabs, sqrt
+from constants import CAR_ACCELERATION, CAR_MAX_SPEED, CAR_ANGLE_STEP, CAR_WIDTH, CAR_HEIGHT
+from constants import CAR_START_LEFT, CAR_START_RIGHT
+from constants import MAX_STEERING_WHEEL_ANGLE, INERTIA_PARAMETER_WHEEL, INERTIA_PARAMETER_SPEED
+from constants import SAMPLE_TIME, eps
+from math import cos, sin, pi, fabs, sqrt, tan
 
 class ControlSystem:
     def __init__(self, kp, ki, kd, sampling_time):
@@ -48,15 +48,13 @@ class Car:
         self.steering_wheel_angle = max(self.steering_wheel_angle, -MAX_STEERING_WHEEL_ANGLE)
 
     def move(self):
-        speed_translation = self.speed * cos(self.steering_wheel_angle)
-        speed_rotation = self.speed * sin(self.steering_wheel_angle)
-        self.position.location += Vector(-sin(self.position.rotation), cos(self.position.rotation)) * speed_translation
-        increment = Vector(cos(self.position.rotation), sin(self.position.rotation))*(speed_rotation/2)
-        self.position.location += increment
-        self.position.rotation -= speed_rotation / CAR_WIDTH
+        self.position.location += Vector(sin(self.position.rotation), cos(self.position.rotation)) * self.speed
+        self.position.rotation += self.speed * tan(self.steering_wheel_angle) / CAR_HEIGHT
+
         self.steering_wheel_angle -= sgn(self.steering_wheel_angle) * INERTIA_PARAMETER_WHEEL
         if fabs(self.steering_wheel_angle) < 3 * eps * pi:
             self.steering_wheel_angle = 0
+
         self.speed -= sgn(self.speed) * INERTIA_PARAMETER_SPEED
         if fabs(self.speed) < eps:
             self.speed = 0
@@ -76,9 +74,9 @@ class Car:
 
     def unravel_box(self):
         theta = self.position.rotation
-        P1 = self.position.location + Vector(-sin(theta) * CAR_HEIGHT / 2 - cos(theta) * CAR_WIDTH / 2,
-                                             cos(theta) * CAR_HEIGHT / 2 - sin(theta) * CAR_WIDTH / 2)
-        P2 = P1 + Vector(cos(theta), sin(theta)) * CAR_WIDTH
-        P3 = P2 + Vector(sin(theta), -cos(theta)) * CAR_HEIGHT
-        P4 = P1 + Vector(sin(theta), -cos(theta)) * CAR_HEIGHT
+        P1 = self.position.location + Vector(sin(theta) * CAR_HEIGHT / 2 - cos(theta) * CAR_WIDTH / 2,
+                                             cos(theta) * CAR_HEIGHT / 2 + sin(theta) * CAR_WIDTH / 2)
+        P2 = P1 + Vector(cos(theta), -sin(theta)) * CAR_WIDTH
+        P3 = P2 + Vector(-sin(theta), -cos(theta)) * CAR_HEIGHT
+        P4 = P3 + Vector(-cos(theta), sin(theta)) * CAR_WIDTH
         return Box(P1, P2, P3, P4)

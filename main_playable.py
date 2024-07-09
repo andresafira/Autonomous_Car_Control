@@ -1,6 +1,7 @@
 from simulation import Simulation
-from simulation_constants import FREQUENCY, CAR_MAX_SPEED
+from constants import FREQUENCY, CAR_MAX_SPEED
 import pygame
+import sys
 
 
 def main():
@@ -12,7 +13,7 @@ def main():
         sim.update()
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 run = False
 
         keys = pygame.key.get_pressed()
@@ -30,3 +31,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    sys.exit()

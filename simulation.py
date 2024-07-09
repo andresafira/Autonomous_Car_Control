@@ -1,7 +1,7 @@
-from simulation_constants import WIDTH, HEIGHT, CAR_HEIGHT, CAR_WIDTH, BACKGROUND_SPRITE, CAR_SPRITE
-from simulation_constants import CAR_START_LEFT, CAR_START_RIGHT
-from simulation_constants import SAMPLE_TIME, eps, SIDEWALK_WIDTH, MIDDLE_RIGHT, MIDDLE_LEFT
-from simulation_constants import BLACK, WHITE, RED
+from constants import WIDTH, HEIGHT, CAR_HEIGHT, CAR_WIDTH, BACKGROUND_SPRITE, CAR_SPRITE
+from constants import CAR_START_LEFT, CAR_START_RIGHT
+from constants import SAMPLE_TIME, eps, SIDEWALK_WIDTH, MIDDLE_RIGHT, MIDDLE_LEFT
+from constants import BLACK, WHITE, RED
 from Utils.General import clip
 from Utils.Geometry.Box import *
 from Utils.Geometry.Position import Position
@@ -96,11 +96,11 @@ class Simulation:
         pygame.draw.line(self.screen, WHITE, P4, P1)
 
     def draw_car(self, car: Car):
-        sprite_copy = rotate(self.car_sprite, car.position.rotation * 180 / pi)
+        sprite_copy = rotate(self.car_sprite, -car.position.rotation * 180 / pi)
         if not self.car.alive:
             sprite_copy.set_alpha(50)
         self.screen.blit(sprite_copy, (car.position.location.x - sprite_copy.get_width() / 2,
-                                       HEIGHT / 2 - car.position.location.y + self.car.position.location.y))
+                                       HEIGHT / 2 + CAR_HEIGHT/2 - sprite_copy.get_height() / 2 - car.position.location.y + self.car.position.location.y))
         if self.draw_BB:
             self.draw_bounding_box(car)
 

@@ -25,6 +25,8 @@ def main():
             sim.car.turn_right()
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
             sim.car.brake()
+        if keys[pygame.K_r]:
+            sim.reset()
 
 if __name__ == "__main__":
     main()

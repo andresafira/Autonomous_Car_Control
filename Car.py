@@ -3,25 +3,15 @@ from Utils.Geometry.Position import Position
 from Utils.Geometry.Box import Segment, Box
 from Utils.General import sgn, interpolate_cycle
 from constants import CAR_ACCELERATION, CAR_MAX_SPEED, CAR_ANGLE_STEP, CAR_WIDTH, CAR_HEIGHT
-from constants import CAR_START_LEFT, CAR_START_RIGHT
-from constants import MAX_STEERING_WHEEL_ANGLE, INERTIA_PARAMETER_WHEEL, INERTIA_PARAMETER_SPEED
+from constants import CAR_START_LEFT, CAR_START_RIGHT, CAR_MASS, WIND_B
+from constants import MAX_STEERING_WHEEL_ANGLE, INERTIA_PARAMETER_WHEEL 
 from constants import SAMPLE_TIME, eps
 from math import cos, sin, pi, fabs, sqrt, tan
-
-class ControlSystem:
-    def __init__(self, kp, ki, kd, sampling_time):
-        self.kp = kp
-        self.kd = kd
-        self.ki = ki
-        self.T = sampling_time
-
-    def control(self, error):
-        pass
-
+from Control import PFController
 
 
 class Car:
-    def __init__(self, initial_position, initial_speed=0, DUMMY=False):
+    def __init__(self, initial_position, position_controller=None, speed_controller=None, initial_speed=0, DUMMY=False):
         self.DUMMY = DUMMY
         self.position = initial_position
         self.speed = initial_speed
@@ -30,13 +20,15 @@ class Car:
         self.alive = True
         if not self.DUMMY:
             self.steering_wheel_angle = 0
+        self.position_controller = position_controller
+        self.speed_controller = speed_controller
 
     def accelerate(self):
-        self.speed += CAR_ACCELERATION
+        self.speed += CAR_ACCELERATION * SAMPLE_TIME
         self.speed = min(self.speed, CAR_MAX_SPEED)
 
     def brake(self):
-        self.speed -= CAR_ACCELERATION
+        self.speed -= CAR_ACCELERATION * SAMPLE_TIME
         self.speed = max(self.speed, -CAR_MAX_SPEED)
 
     def turn_right(self):
@@ -47,15 +39,26 @@ class Car:
         self.steering_wheel_angle -= CAR_ANGLE_STEP
         self.steering_wheel_angle = max(self.steering_wheel_angle, -MAX_STEERING_WHEEL_ANGLE)
 
+    def apply_command(self, vr, xr):
+        if self.position_controller.name == "PV":
+            phi = self.position_controller.control(xr, self.position.location.x, self.position.rotation)
+        else:
+            phi = self.position_controller.control(xr, self.position.location.x)
+        self.steering_wheel_angle = phi
+        
+        f = self.speed_controller.control(vr, self.speed)
+        self.speed += f/CAR_MASS * SAMPLE_TIME
+        self.speed = min(max(self.speed, -CAR_MAX_SPEED), CAR_MAX_SPEED)
+
     def move(self):
-        self.position.location += Vector(sin(self.position.rotation), cos(self.position.rotation)) * self.speed
-        self.position.rotation += self.speed * tan(self.steering_wheel_angle) / CAR_HEIGHT
+        self.position.location += Vector(sin(self.position.rotation), cos(self.position.rotation)) * self.speed * SAMPLE_TIME
+        self.position.rotation += self.speed * tan(self.steering_wheel_angle) / CAR_HEIGHT * SAMPLE_TIME
 
         self.steering_wheel_angle -= sgn(self.steering_wheel_angle) * INERTIA_PARAMETER_WHEEL
-        if fabs(self.steering_wheel_angle) < 3 * eps * pi:
+        if fabs(self.steering_wheel_angle) < 2 * eps * pi:
             self.steering_wheel_angle = 0
 
-        self.speed -= sgn(self.speed) * INERTIA_PARAMETER_SPEED
+        self.speed -= self.speed * WIND_B / CAR_MASS * SAMPLE_TIME
         if fabs(self.speed) < eps:
             self.speed = 0
 
@@ -63,7 +66,7 @@ class Car:
         if not self.alive:
             return
         if self.DUMMY:
-            self.position.location.y += self.speed
+            self.position.location.y += self.speed*SAMPLE_TIME
             self.bounding_box = self.unravel_box()
             return
         self.move()

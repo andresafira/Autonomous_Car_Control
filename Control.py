@@ -6,14 +6,20 @@ class PIDController:
         self.T = sample_time
         self.name = "PID"
 
-        self.ep = 0
-        self.epp = 0
-        self.up = 0
-        self.upp = 0
+        self.ep = 0.0
+        self.epp = 0.0
+        self.up = 0.0
+        self.upp = 0.0
 
         self.b0 = self.kp + (self.ki * self.T / 2) + (2 * self.kd / self.T)
         self.b1 = self.ki * self.T - (4 * self.kd / self.T)
         self.b2 = -self.kp + (self.ki * self.T / 2) + (2 * self.kd / self.T)
+
+    def reset(self):
+        self.ep = 0.0
+        self.epp = 0.0
+        self.up = 0.0
+        self.upp = 0.0
 
     def control(self, yr, y):
         error = yr - y
@@ -30,19 +36,18 @@ class PIDController:
 
 
 class PVController:
-    def __init__(self, kp, kv, sample_time, L, v, max_command):
-        self.kp = kp
-        self.kv = kv
-        self.T = sample_time
-        self.max_command = max_command
+    def __init__(self, xi, wn, max_steering_command):
+        self.kv = 2*xi*wn
+        self.kp = wn*wn/self.kv
+        self.max_steer = max_steering_command
         self.name = "PV"
-        
-        self.L = L
-        self.v = v
 
-    def control(self, xr, x, theta):
-        u = self.kv*self.L/self.v * (self.kp*(xr - x) - theta)
-        return min(max(u, -self.max_command), self.max_command)
+    def reset(self):
+        pass
+
+    def control(self, xr, x, theta, v, L):
+        u = self.kv * ((self.kp/v)*(xr - x) - theta) * L/v
+        return min(max(u, -self.max_steer), self.max_steer)
 
 
 class PFController:
@@ -52,6 +57,9 @@ class PFController:
         self.max_command = max_command
         self.name = "PF"
 
+    def reset(self):
+        pass
+    
     def control(self, yr, y):
         u = self.kx * (yr - y) + self.kff * yr
         return min(max(u, -self.max_command), self.max_command)

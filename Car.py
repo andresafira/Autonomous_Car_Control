@@ -11,7 +11,7 @@ from Control import PFController
 
 
 class Car:
-    def __init__(self, initial_position, position_controller=None, speed_controller=None, initial_speed=0, DUMMY=False):
+    def __init__(self, initial_position, initial_speed=0, DUMMY=False):
         self.DUMMY = DUMMY
         self.position = initial_position
         self.speed = initial_speed
@@ -20,6 +20,8 @@ class Car:
         self.alive = True
         if not self.DUMMY:
             self.steering_wheel_angle = 0
+
+    def set_controllers(self, speed_controller, position_controller):
         self.position_controller = position_controller
         self.speed_controller = speed_controller
 
@@ -40,12 +42,13 @@ class Car:
         self.steering_wheel_angle = max(self.steering_wheel_angle, -MAX_STEERING_WHEEL_ANGLE)
 
     def apply_command(self, vr, xr):
+        v = max(self.speed, CAR_ACCELERATION*SAMPLE_TIME)
         if self.position_controller.name == "PV":
-            phi = self.position_controller.control(xr, self.position.location.x, self.position.rotation)
+            phi = self.position_controller.control(xr, self.position.location.x, self.position.rotation, v, CAR_HEIGHT)
         else:
             phi = self.position_controller.control(xr, self.position.location.x)
         self.steering_wheel_angle = phi
-        
+
         f = self.speed_controller.control(vr, self.speed)
         self.speed += f/CAR_MASS * SAMPLE_TIME
         self.speed = min(max(self.speed, -CAR_MAX_SPEED), CAR_MAX_SPEED)
@@ -54,7 +57,6 @@ class Car:
         self.position.location += Vector(sin(self.position.rotation), cos(self.position.rotation)) * self.speed * SAMPLE_TIME
         self.position.rotation += self.speed * tan(self.steering_wheel_angle) / CAR_HEIGHT * SAMPLE_TIME
 
-        self.steering_wheel_angle -= sgn(self.steering_wheel_angle) * INERTIA_PARAMETER_WHEEL
         if fabs(self.steering_wheel_angle) < 2 * eps * pi:
             self.steering_wheel_angle = 0
 

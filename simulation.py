@@ -37,19 +37,22 @@ def dummy_simple_generator(num_dummy, step=500, side='right'):
 
 
 class Simulation:
-    def __init__(self, side: str = 'left', draw_Bounding_Box: bool = False):
+    def __init__(self, side: str = 'left', draw_Bounding_Box: bool = False, n_dummies: float = 30):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Car simulation")
         self.background_sprite = load(BACKGROUND_SPRITE)
         self.car_sprite = scale(load(CAR_SPRITE), (CAR_WIDTH*1.1, CAR_HEIGHT))
+
         if side == 'left':
             self.car = Car(make_default_position(CAR_START_LEFT))
         elif side == 'right':
             self.car = Car(make_default_position(CAR_START_RIGHT))
         else:
             raise Exception('Invalid side choice! Choose left or right side')
-        self.dummies = dummy_simple_generator(30, side=side)
+
+        self.n_dummies = n_dummies
+        self.dummies = dummy_simple_generator(self.n_dummies, side=side)
         self.objects = []
         self.draw_BB = draw_Bounding_Box
         self.update_check = 0
@@ -61,10 +64,10 @@ class Simulation:
         self.update_check = 0
         if side == 'left':
             self.car.position = make_default_position(CAR_START_LEFT)
-            self.dummies = dummy_simple_generator(20, side='left')
+            self.dummies = dummy_simple_generator(self.n_dummies, side='left')
         elif side == 'right':
             self.car.position = make_default_position(CAR_START_RIGHT)
-            self.dummies = dummy_simple_generator(20, side='right')
+            self.dummies = dummy_simple_generator(self.n_dummies, side='right')
         else:
             raise Exception('Invalid side choice! Choose between left or right side')
         self.update_objects()

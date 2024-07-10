@@ -1,5 +1,5 @@
 from constants import WIDTH, HEIGHT, CAR_HEIGHT, CAR_WIDTH, BACKGROUND_SPRITE, CAR_SPRITE
-from constants import CAR_START_LEFT, CAR_START_RIGHT
+from constants import CAR_START_LEFT, CAR_START_RIGHT, CAR_MAX_SPEED
 from constants import SAMPLE_TIME, eps, SIDEWALK_WIDTH, MIDDLE_RIGHT, MIDDLE_LEFT
 from constants import BLACK, WHITE, RED
 from Utils.General import clip
@@ -32,7 +32,7 @@ def dummy_simple_generator(num_dummy, step=500, side='right'):
             pose = Position(Vector(first, HEIGHT/2 - CAR_HEIGHT + i * step), 0)
         else:
             pose = Position(Vector(second, HEIGHT/2 - CAR_HEIGHT + i * step), 0)
-        dummies.append(Car(initial_position=pose, DUMMY=True, initial_speed=10))
+        dummies.append(Car(initial_position=pose, DUMMY=True, initial_speed=CAR_MAX_SPEED/3))
     return dummies
 
 

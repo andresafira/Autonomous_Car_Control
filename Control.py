@@ -4,13 +4,13 @@ class PIDController:
         self.kd = kd
         self.ki = ki
         self.T = sample_time
-        self.name = "PID"
+        self.max_command = max_command
+        self.name = "PID_incomplete"
 
-        self.ep = 0.0
-        self.epp = 0.0
-        self.up = 0.0
-        self.upp = 0.0
-
+        self.reset()
+        self.calculate_factors()
+    
+    def calculate_factors(self):
         self.b0 = self.kp + (self.ki * self.T / 2) + (2 * self.kd / self.T)
         self.b1 = self.ki * self.T - (4 * self.kd / self.T)
         self.b2 = -self.kp + (self.ki * self.T / 2) + (2 * self.kd / self.T)
@@ -35,18 +35,70 @@ class PIDController:
         return u
 
 
+class PIDFilter:
+    def __init__(self, kp, ki, kd, sample_time):
+        self.kp = kp
+        self.kd = kd
+        self.ki = ki
+        self.T = sample_time
+        self.name = "PID_Filter"
+        
+        self.reset()
+        self.calculate_factors()
+
+    def calculate_factors(self):
+        u0 = 4*self.kd + 2*self.kp*self.T + self.T*self.T*self.ki
+        self.u1 = (2*self.T*self.T*self.ki - 8*self.kd)/u0
+        self.u2 = (4*self.kd - 2*self.T*self.kp + self.T*self.T*self.ki)/u0
+        self.xc = self.ki*self.T*self.T / u0
+
+    def reset(self):
+        self.xp = 0.0
+        self.xpp = 0.0
+        self.up = 0.0
+        self.upp = 0.0
+
+    def control(self, xr):
+        u = self.xc*(xr + 2*self.xp + self.xpp) - self.u1*self.up - self.u2*self.upp
+        self.upp = self.up
+        self.up = u
+        self.xpp = self.xp
+        self.xp = xr
+
+        return u
+
+
+class FullPIDController:
+    def __init__(self, kp, ki, kd, sample_time, max_command):
+        self.PID = PIDController(kp, ki, kd, sample_time, max_command)
+        self.filter = PIDFilter(kp, ki, kd, sample_time)
+        self.name = "PID"
+    
+    def calculate_factors(self):
+        self.PID.calculate_factors()
+        self.filter.calculate_factors()
+
+    def reset(self):
+        self.PID.reset()
+        self.filter.reset()
+
+    def control(self, yr, y):
+        yr_f = self.filter.control(yr)
+        return self.PID.control(yr_f, y)
+
+
 class PVController:
-    def __init__(self, xi, wn, max_steering_command):
-        self.kv = 2*xi*wn
-        self.kp = wn*wn/self.kv
+    def __init__(self, kp, kv, max_steering_command):
+        self.kp = kp
+        self.kv = kv
         self.max_steer = max_steering_command
         self.name = "PV"
 
     def reset(self):
         pass
 
-    def control(self, xr, x, theta, v, L):
-        u = self.kv * ((self.kp/v)*(xr - x) - theta) * L/v
+    def control(self, xr, x, theta):
+        u = self.kv * (self.kp*(xr - x) - theta)
         return min(max(u, -self.max_steer), self.max_steer)
 
 

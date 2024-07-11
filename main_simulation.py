@@ -1,19 +1,45 @@
 from simulation import Simulation
 from constants import WIND_B, CAR_MAX_SPEED, FREQUENCY, SAMPLE_TIME, MAX_STEERING_WHEEL_ANGLE, MIDDLE_LEFT, MIDDLE_RIGHT 
-from constants import MAX_F_COMMAND
-from Control import PFController, PVController
+from constants import MAX_F_COMMAND, CAR_HEIGHT
+from Control import PFController, PVController, FullPIDController
 import pygame
 import sys
 
-def get_controllers():
-    # Setting speed controller
+
+def get_speed_constants():
     Kff = WIND_B
-    Kx = 2000
+    Kx = 4000
+    return Kff, Kx
+
+def get_position_constants(isPID=True):
+    xi = 0.9
+    wn = 6.4462
+    if isPID:
+        k0 = CAR_HEIGHT / CAR_MAX_SPEED**2
+        k = 5
+        kd = k0 * (k + 2) * xi * wn;
+        kp = k0 * (2 * xi**2 * k + 1) * wn**2;
+        ki = k0 * k * xi * wn**3;
+        return kp, ki, kd
+    
+    kp = wn/(2*xi*CAR_MAX_SPEED)
+    kv = 2*xi*wn*CAR_HEIGHT/CAR_MAX_SPEED
+    return kp, kv
+
+
+def get_controllers():
+    Kff, Kx = get_speed_constants()
     speed_controller = PFController(Kx, Kff, MAX_F_COMMAND)
 
-    xi = 0.9
-    wn = 10
-    position_controller = PVController(xi, wn, MAX_STEERING_WHEEL_ANGLE)
+    PIDControl = False
+
+    if PIDControl:
+        kp, ki, kd = get_position_constants(PIDControl)
+        position_controller = FullPIDController(kp, ki, kd, SAMPLE_TIME, MAX_STEERING_WHEEL_ANGLE)
+    else: 
+        kp, kv = get_position_constants(PIDControl)
+        position_controller = PVController(kp, kv, MAX_STEERING_WHEEL_ANGLE)    
+    
     return speed_controller, position_controller
 
 

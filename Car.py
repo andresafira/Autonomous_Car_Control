@@ -42,11 +42,13 @@ class Car:
         self.steering_wheel_angle = max(self.steering_wheel_angle, -MAX_STEERING_WHEEL_ANGLE)
 
     def apply_command(self, vr, xr):
-        v = max(self.speed, CAR_ACCELERATION*SAMPLE_TIME)
         if self.position_controller.name == "PV":
-            phi = self.position_controller.control(xr, self.position.location.x, self.position.rotation, v, CAR_HEIGHT)
-        else:
+            phi = self.position_controller.control(xr, self.position.location.x, self.position.rotation)
+        elif self.position_controller.name == "PID":
             phi = self.position_controller.control(xr, self.position.location.x)
+        else:
+            raise Exception("Invalid controller")
+
         self.steering_wheel_angle = phi
 
         f = self.speed_controller.control(vr, self.speed)

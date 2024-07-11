@@ -5,6 +5,8 @@ from Control import PFController, PVController, FullPIDController
 import pygame
 import sys
 
+from math import sin, pi
+
 
 def get_speed_constants():
     Kff = WIND_B
@@ -12,14 +14,14 @@ def get_speed_constants():
     return Kff, Kx
 
 def get_position_constants(isPID=True):
-    xi = 0.9
-    wn = 6.4462
+    xi = 1
+    wn = 10
     if isPID:
         k0 = CAR_HEIGHT / CAR_MAX_SPEED**2
-        k = 5
-        kd = k0 * (k + 2) * xi * wn;
-        kp = k0 * (2 * xi**2 * k + 1) * wn**2;
-        ki = k0 * k * xi * wn**3;
+        k = 10
+        kd = k0 * (k + 2) * xi * wn
+        kp = k0 * (2 * xi**2 * k + 1) * wn**2
+        ki = k0 * k * xi * wn**3
         return kp, ki, kd
     
     kp = wn/(2*xi*CAR_MAX_SPEED)
@@ -31,7 +33,7 @@ def get_controllers():
     Kff, Kx = get_speed_constants()
     speed_controller = PFController(Kx, Kff, MAX_F_COMMAND)
 
-    PIDControl = False
+    PIDControl = True
 
     if PIDControl:
         kp, ki, kd = get_position_constants(PIDControl)
@@ -44,7 +46,8 @@ def get_controllers():
 
 
 def main():
-    sim = Simulation(side='left', draw_Bounding_Box=True, n_dummies=0)
+    sim = Simulation(side='left', draw_Bounding_Box=True)
+    sim.car.playable = False
     run = True
 
     speed_controller, position_controller = get_controllers()
@@ -60,12 +63,13 @@ def main():
             i = 0
             flip = not flip
         sim.car.apply_command(CAR_MAX_SPEED, MIDDLE_RIGHT if flip else MIDDLE_LEFT)
-        
+        #sim.car.apply_command(CAR_MAX_SPEED, (MIDDLE_LEFT + MIDDLE_RIGHT)/2 + (MIDDLE_RIGHT - MIDDLE_LEFT)/2*sin(2*pi*i/(5*180)))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 run = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                sim.reset()
+                sim.reset('left')
 
 
 if __name__ == "__main__":

@@ -5,7 +5,8 @@ import sys
 
 
 def main():
-    sim = Simulation(side='left', draw_Bounding_Box=True)
+    sim = Simulation(side='right', draw_Bounding_Box=True)
+    sim.dummy_simple_generator(num_dummy = 5, step = 600, side="right", speed = CAR_MAX_SPEED/3)
     run = True
 
     while run:
@@ -27,7 +28,8 @@ def main():
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
             sim.car.brake()
         if keys[pygame.K_r]:
-            sim.reset()
+            sim.reset(side="right")
+            sim.dummy_simple_generator(5, step = 600, side="right", speed = CAR_MAX_SPEED/3)
 
 if __name__ == "__main__":
     main()

@@ -17,27 +17,8 @@ def make_default_position(location):
     return Position(Vector(location[0], location[1]), 0)
 
 
-def dummy_simple_generator(num_dummy, step=500, side='right'):
-    if side == 'left':
-        first = MIDDLE_RIGHT
-        second = MIDDLE_LEFT
-    elif side == 'right':
-        first = MIDDLE_LEFT
-        second = MIDDLE_RIGHT
-    else:
-        raise Exception('Invalid side choice! Choose left or right side')
-    dummies = []
-    for i in range(num_dummy):
-        if i % 2 == 0:
-            pose = Position(Vector(first, HEIGHT/2 - CAR_HEIGHT + i * step), 0)
-        else:
-            pose = Position(Vector(second, HEIGHT/2 - CAR_HEIGHT + i * step), 0)
-        dummies.append(Car(initial_position=pose, DUMMY=True, initial_speed=CAR_MAX_SPEED/3))
-    return dummies
-
-
 class Simulation:
-    def __init__(self, side: str = 'left', draw_Bounding_Box: bool = False, n_dummies: float = 30):
+    def __init__(self, side: str, draw_Bounding_Box: bool):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Car simulation")
@@ -51,26 +32,45 @@ class Simulation:
         else:
             raise Exception('Invalid side choice! Choose left or right side')
 
-        self.n_dummies = n_dummies
-        self.dummies = dummy_simple_generator(self.n_dummies, side=side)
+        self.dummies = []
         self.objects = []
         self.draw_BB = draw_Bounding_Box
         self.update_check = 0
 
-    def reset(self, side: str = 'left'):
+    def dummy_simple_generator(self, num_dummy, step, side, speed):
+        if side == 'left':
+            first = MIDDLE_RIGHT
+            second = MIDDLE_LEFT
+        elif side == 'right':
+            first = MIDDLE_LEFT
+            second = MIDDLE_RIGHT
+        else:
+            raise Exception('Invalid side choice! Choose left or right side')
+        self.dummies.clear()
+        for i in range(num_dummy):
+            if i % 2 == 0:
+                pose = Position(Vector(first, HEIGHT/2 - CAR_HEIGHT + i * step), 0)
+            else:
+                pose = Position(Vector(second, HEIGHT/2 - CAR_HEIGHT + i * step), 0)
+            self.dummies.append(Car(initial_position=pose, DUMMY=True, initial_speed=speed))
+    
+    def reset(self, side: str):
         self.car.speed = 0
         self.car.alive = True
         self.dummies.clear()
         self.update_check = 0
         if side == 'left':
             self.car.position = make_default_position(CAR_START_LEFT)
-            self.dummies = dummy_simple_generator(self.n_dummies, side='left')
         elif side == 'right':
             self.car.position = make_default_position(CAR_START_RIGHT)
-            self.dummies = dummy_simple_generator(self.n_dummies, side='right')
         else:
             raise Exception('Invalid side choice! Choose between left or right side')
         self.update_objects()
+
+    def generate_car(self, x_position, speed):
+        pose = Position(Vector(x_position, self.car.position.location.y + CAR_HEIGHT/2), 0)
+        car = Car(initial_position=pose, DUMMY=True, initial_speed=speed)
+        self.dummies.append(Car())
 
     def update_objects(self):
         self.objects.clear()

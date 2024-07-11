@@ -18,6 +18,7 @@ class Car:
         self.bounding_box = self.unravel_box()
         self.keys_history = []
         self.alive = True
+        self.playable = True
         if not self.DUMMY:
             self.steering_wheel_angle = 0
 
@@ -58,10 +59,12 @@ class Car:
     def move(self):
         self.position.location += Vector(sin(self.position.rotation), cos(self.position.rotation)) * self.speed * SAMPLE_TIME
         self.position.rotation += self.speed * tan(self.steering_wheel_angle) / CAR_HEIGHT * SAMPLE_TIME
-
+        
+        if self.playable:
+            self.steering_wheel_angle -= sgn(self.steering_wheel_angle)*INERTIA_PARAMETER_WHEEL
         if fabs(self.steering_wheel_angle) < 2 * eps * pi:
             self.steering_wheel_angle = 0
-
+        print(self.speed) 
         self.speed -= self.speed * WIND_B / CAR_MASS * SAMPLE_TIME
         if fabs(self.speed) < eps:
             self.speed = 0

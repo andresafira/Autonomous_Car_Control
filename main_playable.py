@@ -7,7 +7,7 @@ import sys
 def main():
     """Performs a simulation controlled by the user, so the car dynamics can be
     tested and explored"""
-    sim = Simulation(side='right', draw_Bounding_Box=True)
+    sim = Simulation(side='right', draw_Bounding_Box=True, draw_reference_line=False, draw_car_line=False)
     sim.dummy_simple_generator(num_dummy = 10, step = 700, side='right', speed = CAR_MAX_SPEED/3)
     run = True
 

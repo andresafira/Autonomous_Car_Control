@@ -1,7 +1,7 @@
 from Utils.Geometry.Vector import Vector
 from Utils.Geometry.Position import Position
 from Utils.Geometry.Box import Segment, Box
-from Utils.General import sgn, interpolate_cycle
+from Utils.General import sgn
 from constants import CAR_ACCELERATION, CAR_MAX_SPEED, CAR_ANGLE_STEP, CAR_WIDTH, CAR_HEIGHT
 from constants import CAR_START_LEFT, CAR_START_RIGHT, CAR_MASS, WIND_B
 from constants import MAX_STEERING_WHEEL_ANGLE, INERTIA_PARAMETER_WHEEL 

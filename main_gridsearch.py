@@ -1,7 +1,7 @@
 from simulation import Simulation
 from constants import WIND_B, CAR_MAX_SPEED, FREQUENCY, SAMPLE_TIME, MAX_STEERING_WHEEL_ANGLE, MIDDLE_LEFT, MIDDLE_RIGHT 
 from constants import MAX_F_COMMAND, CAR_HEIGHT, CAR_MASS
-from Control import PFController, PVController, FullPIDController
+from Control import PFController, FullPIDController
 import pygame
 import sys
 import os

@@ -1,69 +1,71 @@
 from simulation import Simulation
 from constants import WIND_B, CAR_MAX_SPEED, FREQUENCY, SAMPLE_TIME, MAX_STEERING_WHEEL_ANGLE, MIDDLE_LEFT, MIDDLE_RIGHT 
-from constants import MAX_F_COMMAND, CAR_HEIGHT
+from constants import MAX_F_COMMAND, CAR_HEIGHT, CAR_MASS
 from Control import PFController, PVController, FullPIDController
 import pygame
 import sys
 
-from math import sin, pi
 
-
-def get_speed_constants():
+def get_speed_constants() -> tuple[float, float]:
+    """Funtion the returns the constants for the speed control system"""
+    tau = 0.2
     Kff = WIND_B
-    Kx = 4000
+    Kx = CAR_MASS/tau - WIND_B
     return Kff, Kx
 
-def get_position_constants(isPID=True):
+
+def get_position_constants() -> tuple[float, float, float]:
+    """Funtion the returns the constants for the position control system"""
     xi = 1
     wn = 10
-    if isPID:
-        k0 = CAR_HEIGHT / CAR_MAX_SPEED**2
-        k = 10
-        kd = k0 * (k + 2) * xi * wn
-        kp = k0 * (2 * xi**2 * k + 1) * wn**2
-        ki = k0 * k * xi * wn**3
-        return kp, ki, kd
-    
-    kp = wn/(2*xi*CAR_MAX_SPEED)
-    kv = 2*xi*wn*CAR_HEIGHT/CAR_MAX_SPEED
-    return kp, kv
+    k0 = CAR_HEIGHT / CAR_MAX_SPEED**2
+    k = 5
+    kd = k0 * (k + 2) * xi * wn
+    kp = k0 * (2 * xi**2 * k + 1) * wn**2
+    ki = k0 * k * xi * wn**3
+    return kp, ki, kd
 
 
-def get_controllers():
+def get_controllers() -> tuple[PFController, FullPIDController]:
+    """Function that returns the car controllers"""
     Kff, Kx = get_speed_constants()
     speed_controller = PFController(Kx, Kff, MAX_F_COMMAND)
 
-    PIDControl = True
-
-    if PIDControl:
-        kp, ki, kd = get_position_constants(PIDControl)
-        position_controller = FullPIDController(kp, ki, kd, SAMPLE_TIME, MAX_STEERING_WHEEL_ANGLE)
-    else: 
-        kp, kv = get_position_constants(PIDControl)
-        position_controller = PVController(kp, kv, MAX_STEERING_WHEEL_ANGLE)    
+    kp, ki, kd = get_position_constants()
+    position_controller = FullPIDController(kp, ki, kd, SAMPLE_TIME, MAX_STEERING_WHEEL_ANGLE)
     
     return speed_controller, position_controller
 
 
 def main():
-    sim = Simulation(side='left', draw_Bounding_Box=True)
+    """Performs the simulation of the system dynamics for the chosen controllers.
+    The main car starts at rest on the wrong lane, so that the effects of the speed
+    change can be observed, for the position controller. After that dummy cars will
+    appear in order to test the reaction system."""
+
+    sim: Simulation = Simulation(side='left', draw_Bounding_Box=True, draw_reference_line=True, draw_car_line=True)
+    # Ensures that only the controllers will affect the car movement
     sim.car.playable = False
-    run = True
+    run: bool = True
 
     speed_controller, position_controller = get_controllers()
     sim.car.set_controllers(speed_controller, position_controller)
     clock = pygame.time.Clock()
-    i = 0
-    flip = True
+    t: float = 0
+    
     while run:
-        i += 1
-        a = clock.tick_busy_loop(FREQUENCY)
+        clock.tick_busy_loop(FREQUENCY)
         sim.update()
-        if i > 5*180:
-            i = 0
-            flip = not flip
-        sim.car.apply_command(CAR_MAX_SPEED, MIDDLE_RIGHT if flip else MIDDLE_LEFT)
-        #sim.car.apply_command(CAR_MAX_SPEED, (MIDDLE_LEFT + MIDDLE_RIGHT)/2 + (MIDDLE_RIGHT - MIDDLE_LEFT)/2*sin(2*pi*i/(5*180)))
+        vr, yr = sim.get_reference_parameters()
+        sim.car.apply_command(vr, yr)
+        
+        # time increment
+        t += SAMPLE_TIME
+        if t > 3:
+            t = 0
+            # add car in the right lane
+            sim.generate_dummy(MIDDLE_RIGHT, CAR_MAX_SPEED/2)
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):

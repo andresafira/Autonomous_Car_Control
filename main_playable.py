@@ -1,12 +1,14 @@
-from simulation import Simulation
 from constants import FREQUENCY, CAR_MAX_SPEED
+from simulation import Simulation
 import pygame
 import sys
 
 
 def main():
+    """Performs a simulation controlled by the user, so the car dynamics can be
+    tested and explored"""
     sim = Simulation(side='right', draw_Bounding_Box=True)
-    sim.dummy_simple_generator(num_dummy = 5, step = 600, side="right", speed = CAR_MAX_SPEED/3)
+    sim.dummy_simple_generator(num_dummy = 10, step = 700, side='right', speed = CAR_MAX_SPEED/3)
     run = True
 
     while run:
@@ -29,7 +31,7 @@ def main():
             sim.car.brake()
         if keys[pygame.K_r]:
             sim.reset(side="right")
-            sim.dummy_simple_generator(5, step = 600, side="right", speed = CAR_MAX_SPEED/3)
+            sim.dummy_simple_generator(10, step = 700, side='right', speed = CAR_MAX_SPEED/3)
 
 if __name__ == "__main__":
     main()

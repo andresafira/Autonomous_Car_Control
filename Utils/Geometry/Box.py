@@ -3,6 +3,7 @@ import numpy as np
 
 
 class Segment:
+    """Method the represents a line segment (used in order to detect collisions)"""
     def __init__(self, P1, P2):
         self.v = P2 - P1
         self.base = P1
@@ -38,6 +39,8 @@ class Segment:
 
 
 class Box:
+    """A set of 4 segements that represents a bounding box. Used to check collision between
+    two quadrilateral shapes"""
     def __init__(self, P1, P2, P3, P4):
         self.vertices = [P1, P2, P3, P4]
         self.sides = [Segment(P1, P2), Segment(P2, P3), Segment(P3, P4), Segment(P4, P1)]
@@ -72,6 +75,8 @@ class Box:
         return False
 
     def check_collision(self, objects):
+        """More general function that performs the collision checking of a list of
+        objects, that can be segements of other boxes"""
         if type(objects) is Segment:
             return self.check_collision_segment(objects) is not None
         if type(objects) is Box:

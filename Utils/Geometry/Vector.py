@@ -2,6 +2,7 @@ from math import sqrt
 
 
 class Vector:
+    """Basic vector implementation to represent positions"""
     def __init__(self, x, y):
         self.x = x
         self.y = y

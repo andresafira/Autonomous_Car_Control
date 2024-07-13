@@ -1,5 +1,5 @@
-from math import pi
 from Utils.General import eps
+from math import pi
 
 # World dimensions
 WIDTH = 400
@@ -17,18 +17,24 @@ BACKGROUND_SPRITE = "Sprites/background.png"
 CAR_SPRITE = "Sprites/car.png"
 
 # Car parameters
-CAR_WIDTH = 50
-CAR_HEIGHT = 100
+CAR_WIDTH = 60
+CAR_HEIGHT = 120
 CAR_MASS = 1000
 CAR_START_LEFT = (MIDDLE_LEFT, HEIGHT/2 - CAR_HEIGHT)
 CAR_START_RIGHT = (MIDDLE_RIGHT, HEIGHT/2 - CAR_HEIGHT)
-CAR_ACCELERATION = 12*60
 CAR_ANGLE_STEP = pi / 200
 CAR_MAX_SPEED = 1200
-MAX_STEERING_WHEEL_ANGLE = 5*pi / 180
-INERTIA_PARAMETER_WHEEL = CAR_ANGLE_STEP/2
+CAR_ACCELERATION = 12*60
+MAX_STEERING_WHEEL_ANGLE = 10*pi / 180
+
+# Physics paremeters
 WIND_B = 100
 MAX_F_COMMAND = 1000*12*60
+INERTIA_PARAMETER_WHEEL = CAR_ANGLE_STEP/2
+
+# Safety parameters for the car reaction system
+SAFETY_DISTANCE_BACK = 300
+SAFETY_DISTANCE_FRONT = 5
 
 # RGB colors
 WHITE = (255, 255, 255)

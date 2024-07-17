@@ -7,6 +7,8 @@ import sys
 import os
 import matplotlib.pyplot as plt
 
+xi_list = [0.7 + 0.05*i for i in range(7)]
+wn_list = [7 + 0.5*i for i in range(11)]
 
 def get_speed_constants():
     tau = 0.2
@@ -32,12 +34,12 @@ def get_controllers(xi, wn, k):
     return speed_controller, position_controller
 
 
-def simulate(name, xi, wn, k):
+def simulate(name, xi, wn, k, initial_speed):
     """Performs a grid search for various combinations of values for wn and xi
     in order to determine the better parameters"""
     sim = Simulation(side='left', draw_Bounding_Box=True, draw_reference_line=False, draw_car_line=True)
     sim.car.playable = False
-    sim.car.speed = CAR_MAX_SPEED
+    sim.car.speed = initial_speed
     run = True
 
     speed_controller, position_controller = get_controllers(xi, wn, k)
@@ -73,8 +75,8 @@ def simulate(name, xi, wn, k):
 
 def plot_results():
     # Define the range for i and j
-    i_range = range(6)
-    j_range = range(4)
+    i_range = range(len(xi_list))
+    j_range = range(len(wn_list))
 
     # Initialize a dictionary to store data
     data = {}
@@ -82,7 +84,7 @@ def plot_results():
     # Read the data from files
     for i in i_range:
         for j in j_range:
-            filename = f"./grid/grid_{i}_{j}.txt"
+            filename = f"./grid/grid_{i}_{j}_repouso.txt"
             with open(filename, 'r') as file:
                 lines = file.readlines()
                 xi = float(lines[0].split('=')[1].strip())
@@ -105,24 +107,24 @@ def plot_results():
     for wn in data:
         plt.figure()
         for xi in data[wn]:
-            plt.plot(data[wn][xi]['t'], data[wn][xi]['y'], label=f'xi = {xi}')
-        plt.title(f'Curves for wn = {wn}')
-        plt.xlabel('t')
-        plt.ylabel('y')
+            plt.plot(data[wn][xi]['t'], data[wn][xi]['y'], label=f'xi = {round(xi, 3)}')
+        plt.title(f'Curvas de Simulação para wn = {wn}')
+        plt.xlabel('t (s)')
+        plt.ylabel('y (pixel)')
         plt.legend()
         plt.grid(True)
-        plt.savefig(f'./grid/graph_wn_{int(wn)}.png')  # Save the figure
+        plt.savefig(f'./grid/graph_wn_{wn}_rep.eps', format='eps')  # Save the figure
 
 
 if __name__ == "__main__":
     # Here testing the combinations of xi and wn
-    i = 0
-    for xi in [0.7, 0.8, 0.9, 1, 1.1, 1.2]:
-        j = 0
-        for wn in [7, 8, 9, 10]:
-            simulate(f"./grid/grid_{i}_{j}", xi, wn, 5)
-            j += 1
-        i += 1
+    # i = 0
+    # for xi in xi_list:
+    #     j = 0
+    #     for wn in wn_list:
+    #         simulate(f"./grid/grid_{i}_{j}_speed", xi, wn, 5, CAR_MAX_SPEED)
+    #         j += 1
+    #     i += 1
 
     plot_results()
     sys.exit()

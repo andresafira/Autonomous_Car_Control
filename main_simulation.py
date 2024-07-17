@@ -37,7 +37,21 @@ def get_controllers() -> tuple[PFController, FullPIDController]:
     return speed_controller, position_controller
 
 
-def main():
+def store_data(data: list):
+    position = "t cl rl\n"
+    speed = "t cv rv\n"
+
+    for time in range(len(data['ref_pos'])):
+        position += f"{time*SAMPLE_TIME} {data['car_pos'][time] - MIDDLE_LEFT} {data['ref_pos'][time] - MIDDLE_LEFT}\n"
+        speed += f"{time*SAMPLE_TIME} {data['car_speed'][time]} {data['ref_speed'][time]}\n"
+
+    with open("position_data.txt", 'w') as file:
+        file.write(position)
+    with open("speed_data.txt", 'w') as file:
+        file.write(speed)
+
+
+def main(save_data = False):
     """Performs the simulation of the system dynamics for the chosen controllers.
     The main car starts at rest on the wrong lane, so that the effects of the speed
     change can be observed, for the position controller. After that dummy cars will
@@ -51,20 +65,31 @@ def main():
     speed_controller, position_controller = get_controllers()
     sim.car.set_controllers(speed_controller, position_controller)
     clock = pygame.time.Clock()
-    t: float = 0
-    
+    t: int = 0
+    data = {'car_pos':[], 'ref_pos':[], 'car_speed':[], 'ref_speed':[]}
     while run:
         clock.tick_busy_loop(FREQUENCY)
         sim.update()
         vr, yr = sim.get_reference_parameters()
+        
+        if save_data:
+            data['car_pos'].append(sim.car.position.location.x)
+            data['car_speed'].append(sim.car.speed)
+            data['ref_pos'].append(yr)
+            data['ref_speed'].append(vr)
+
         sim.car.apply_command(vr, yr)
         
         # time increment
-        t += SAMPLE_TIME
-        if t > 3:
-            t = 0
+        t += 1
+        
+        if (t % (5*FREQUENCY)) == 0:
+            if save_data and t > 2*FREQUENCY:
+                run = False
+                store_data(data)
             # add car in the right lane
             sim.generate_dummy(MIDDLE_RIGHT, CAR_MAX_SPEED/2)
+
 
 
         for event in pygame.event.get():
@@ -75,5 +100,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(save_data=False)
     sys.exit()

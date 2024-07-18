@@ -118,13 +118,13 @@ def plot_results():
 
 if __name__ == "__main__":
     # Here testing the combinations of xi and wn
-    # i = 0
-    # for xi in xi_list:
-    #     j = 0
-    #     for wn in wn_list:
-    #         simulate(f"./grid/grid_{i}_{j}_speed", xi, wn, 5, CAR_MAX_SPEED)
-    #         j += 1
-    #     i += 1
+    i = 0
+    for xi in xi_list:
+        j = 0
+        for wn in wn_list:
+            simulate(f"./grid/grid_{i}_{j}_speed", xi, wn, 5, CAR_MAX_SPEED)
+            j += 1
+        i += 1
 
     plot_results()
     sys.exit()
